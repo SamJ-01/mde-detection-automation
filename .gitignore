@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Never commit credentials or exported alert data
+.env
+*.secret
+exports/
