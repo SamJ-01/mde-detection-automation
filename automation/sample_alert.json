@@ -1,0 +1,10 @@
+{
+  "_note": "Synthetic lab alert. Every value is made up.",
+  "id": "da0000000000000000_-0000000000",
+  "title": "PowerShell download-and-execute (custom detection)",
+  "severity": "High",
+  "machineId": "0000000000000000000000000000000000000000",
+  "computerDnsName": "lab-vm-01",
+  "detectionSource": "CustomDetection",
+  "mitreTechniques": ["T1059.001", "T1105"]
+}
