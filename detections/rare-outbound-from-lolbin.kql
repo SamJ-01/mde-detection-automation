@@ -1,0 +1,28 @@
+// =============================================================================
+// Custom detection : Built-in tool connects to a public address nothing else uses
+// ATT&CK           : T1105 Ingress Tool Transfer, T1071.001 Web Protocols
+//                    (Command and Control)
+// Tables           : DeviceNetworkEvents
+// Severity         : Medium
+// Automated action : None (alert for triage)
+// Frequency        : Every 24 hours (the rarity check needs a wider window)
+// Scope            : Lab exercise against synthetic data.
+// -----------------------------------------------------------------------------
+// Why it matters   : certutil, bitsadmin, mshta and similar rarely need to talk to
+//                    the internet. A connection to an address seen on only one
+//                    device in the estate is a useful lead for C2 or downloads.
+// False positives  : Software updates using these tools, new SaaS endpoints.
+// =============================================================================
+let Tools = dynamic(["certutil.exe", "bitsadmin.exe", "mshta.exe", "regsvr32.exe",
+                     "rundll32.exe", "powershell.exe", "pwsh.exe"]);
+let Connections = DeviceNetworkEvents
+    | where Timestamp > ago(1d)
+    | where ActionType == "ConnectionSuccess" and RemoteIPType == "Public"
+    | where InitiatingProcessFileName in~ (Tools);
+let RareIPs = Connections
+    | summarize DevicesSeen = dcount(DeviceId) by RemoteIP
+    | where DevicesSeen == 1;
+Connections
+| join kind=inner RareIPs on RemoteIP
+| project Timestamp, DeviceId, ReportId, DeviceName, RemoteIP, RemotePort, RemoteUrl,
+          InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessAccountName

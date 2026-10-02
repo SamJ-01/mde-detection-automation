@@ -1,0 +1,23 @@
+// =============================================================================
+// Custom detection : Signed Windows binary used to run remote or script content
+// ATT&CK           : T1218 System Binary Proxy Execution (.005 Mshta, .010 Regsvr32,
+//                    .011 Rundll32) (Defense Evasion)
+// Tables           : DeviceProcessEvents
+// Severity         : Medium
+// Automated action : Collect investigation package only (no isolation: higher
+//                    false-positive rate, so a person decides)
+// Frequency        : Every hour
+// Scope            : Lab exercise against synthetic data.
+// -----------------------------------------------------------------------------
+// Why it matters   : mshta, regsvr32 and rundll32 are signed by Microsoft, so
+//                    attackers use them to run scripts or DLLs fetched from the web
+//                    while looking like normal Windows activity.
+// False positives  : Some legacy line-of-business apps call mshta or rundll32 with
+//                    URLs. Baseline per device before raising severity.
+// =============================================================================
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where FileName in~ ("mshta.exe", "regsvr32.exe", "rundll32.exe")
+| where ProcessCommandLine has_any ("http://", "https://", "javascript:", "vbscript:", "scrobj.dll")
+| project Timestamp, DeviceId, ReportId, DeviceName, AccountName, FileName,
+          ProcessCommandLine, InitiatingProcessFileName
