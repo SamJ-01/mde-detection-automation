@@ -1,0 +1,27 @@
+// =============================================================================
+// Custom detection : PowerShell downloads and executes a payload
+// ATT&CK           : T1059.001 PowerShell, T1105 Ingress Tool Transfer (Execution)
+// Tables           : DeviceProcessEvents
+// Severity         : High
+// Automated action : Isolate device (full) + Collect investigation package
+// Frequency        : Every hour (Defender custom detection setting)
+// Scope            : Lab exercise against synthetic data. The rule was scoped to a
+//                    single named lab device so auto-isolation could not affect
+//                    anything else. Remove the DeviceName filter only after tuning.
+// -----------------------------------------------------------------------------
+// Why it matters   : Invoke-WebRequest (or WebClient) followed by Start-Process is
+//                    a classic way to pull down and run a payload in one line.
+// False positives  : Software installers and admin bootstrap scripts. Allow-list
+//                    by script path, signer or account before widening scope.
+// Required columns : Defender custom detections must return Timestamp, DeviceId
+//                    and ReportId so alerts can be tied to a device and an event.
+// =============================================================================
+let ScopedDevices = dynamic(["lab-vm-01"]);   // lab-only scoping: see note above
+DeviceProcessEvents
+| where Timestamp > ago(1h)
+| where DeviceName in~ (ScopedDevices)
+| where FileName in~ ("powershell.exe", "pwsh.exe")
+| where ProcessCommandLine has_any ("Invoke-WebRequest", "iwr", "DownloadFile", "DownloadString", "Net.WebClient")
+| where ProcessCommandLine has_any ("Start-Process", "Invoke-Expression", "iex")
+| project Timestamp, DeviceId, ReportId, DeviceName, AccountName,
+          ProcessCommandLine, InitiatingProcessFileName, InitiatingProcessCommandLine
