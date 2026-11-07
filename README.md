@@ -1,5 +1,7 @@
 # MDE Custom Detections with Automated Response
 
+![MDE Detection Automation: custom Defender detections with a gated detection-to-isolation pipeline](docs/social-preview.png)
+
 > **Lab scope:** a lab exercise using synthetic data on a single scoped lab VM. No
 > real organisation, device or credential appears anywhere in this repository.
 
